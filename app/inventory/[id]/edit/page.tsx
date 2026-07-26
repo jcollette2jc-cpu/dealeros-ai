@@ -9,7 +9,16 @@ export default async function EditVehiclePage({ params }: { params: Promise<{ id
   if (!vehicle) notFound();
   const action = updateVehicle.bind(null, vehicle.id);
   const defaults = {
-    ...vehicle,
+    stockNumber: vehicle.stockNumber,
+    vin: vehicle.vin,
+    year: vehicle.year,
+    make: vehicle.make,
+    model: vehicle.model,
+    trim: vehicle.trim,
+    mileage: vehicle.mileage,
+    color: vehicle.color,
+    status: vehicle.status,
+    notes: vehicle.notes,
     retailPrice: Number(vehicle.retailPrice),
     vehicleCost: Number(vehicle.vehicleCost),
     reconCost: Number(vehicle.reconCost),
