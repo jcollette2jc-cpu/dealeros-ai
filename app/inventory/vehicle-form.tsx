@@ -36,7 +36,7 @@ export function VehicleForm({
 
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         <Field label="Stock number" name="stockNumber" defaultValue={value("stockNumber")} required className={input} />
-        <Field label="VIN" name="vin" defaultValue={value("vin")} required maxLength={17} className={input} />
+        <Field label="VIN or serial number" name="vin" defaultValue={value("vin")} required maxLength={17} className={input} />
         <Field label="Year" name="year" type="number" defaultValue={value("year")} required min={1900} max={new Date().getFullYear() + 1} className={input} />
         <Field label="Make" name="make" defaultValue={value("make")} required className={input} />
         <Field label="Model" name="model" defaultValue={value("model")} required className={input} />
