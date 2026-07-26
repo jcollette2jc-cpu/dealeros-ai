@@ -1,16 +1,20 @@
 {
-  "name": "https-github.com-jimautopro-dealeros-ai",
-  "version": "0.1.0",
+  "name": "dealeros-ai",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.9.0",
     "@prisma/client": "^7.9.0",
+    "better-sqlite3": "^12.2.0",
     "dotenv": "^17.4.2",
     "next": "16.2.11",
     "react": "19.2.4",
@@ -26,6 +30,7 @@
     "eslint-config-next": "16.2.11",
     "prisma": "^7.9.0",
     "tailwindcss": "^4",
+    "tsx": "^4.20.5",
     "typescript": "^5"
   }
 }
