@@ -40,8 +40,11 @@ function parseVehicle(formData: FormData) {
   if (!stockNumber || !vin || !make || !model || !year) {
     throw new Error("Stock number, VIN, year, make, and model are required.");
   }
-  if (vin.length !== 17 || /[IOQ]/.test(vin)) {
-    throw new Error("VIN must be 17 characters and cannot contain I, O, or Q.");
+  if (vin.length < 6 || vin.length > 17 || !/^[A-Z0-9]+$/.test(vin)) {
+    throw new Error("VIN or serial number must be 6–17 letters and numbers.");
+  }
+  if (vin.length === 17 && /[IOQ]/.test(vin)) {
+    throw new Error("A 17-character automotive VIN cannot contain I, O, or Q.");
   }
   if (year < 1900 || year > currentYear) {
     throw new Error(`Year must be between 1900 and ${currentYear}.`);
@@ -51,10 +54,14 @@ function parseVehicle(formData: FormData) {
     throw new Error("Choose a valid vehicle status.");
   }
 
-  const moneyFields = ["retailPrice", "vehicleCost", "reconCost", "otherCost"];
-  for (const field of moneyFields) {
+  for (const field of ["retailPrice", "vehicleCost"]) {
     if (numberValue(formData, field) < 0) {
-      throw new Error("Price and cost values cannot be negative.");
+      throw new Error("Retail price and vehicle cost cannot be negative.");
+    }
+  }
+  for (const field of ["reconCost", "otherCost"]) {
+    if (!Number.isFinite(numberValue(formData, field))) {
+      throw new Error("Recon and other cost adjustments must be valid numbers.");
     }
   }
 
