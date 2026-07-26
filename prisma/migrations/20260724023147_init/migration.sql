@@ -1,4 +1,3 @@
--- CreateTable
 CREATE TABLE "Vehicle" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "stockNumber" TEXT NOT NULL,
@@ -20,8 +19,5 @@ CREATE TABLE "Vehicle" (
     "updatedAt" DATETIME NOT NULL
 );
 
--- CreateIndex
 CREATE UNIQUE INDEX "Vehicle_stockNumber_key" ON "Vehicle"("stockNumber");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Vehicle_vin_key" ON "Vehicle"("vin");
