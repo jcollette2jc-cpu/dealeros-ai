@@ -4,7 +4,9 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [agent/inventory-crud]
+    branches:
+      - agent/inventory-crud
+      - agent/inventory-smoke-tests
 
 jobs:
   verify:
@@ -31,8 +33,34 @@ jobs:
       - name: Apply database migrations
         run: npx prisma migrate deploy
 
+      - name: Run inventory CRUD smoke test
+        run: npx tsx scripts/inventory-smoke-test.ts
+
+      - name: Seed demonstration inventory
+        run: npm run db:seed
+
       - name: Run lint
         run: npm run lint
 
       - name: Build production app
         run: npm run build
+
+      - name: Verify running application pages
+        shell: bash
+        run: |
+          npm start > /tmp/dealeros-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3000/ > /tmp/dashboard.html; then
+              break
+            fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:3000/inventory > /tmp/inventory.html
+          curl --fail --silent http://127.0.0.1:3000/inventory/new > /tmp/new-vehicle.html
+          curl --fail --silent http://127.0.0.1:3000/inventory/1 > /tmp/vehicle-detail.html
+          grep -q "DealerOS AI Command Center" /tmp/dashboard.html
+          grep -q "Inventory Intelligence" /tmp/inventory.html
+          grep -q "Add Vehicle" /tmp/new-vehicle.html
+          grep -q "Vehicle Details" /tmp/vehicle-detail.html
