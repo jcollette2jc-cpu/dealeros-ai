@@ -8,6 +8,7 @@ on:
       - agent/inventory-crud
       - agent/inventory-smoke-tests
       - agent/dealerclick-csv-import
+      - agent/real-inventory-compatibility
 
 jobs:
   verify:

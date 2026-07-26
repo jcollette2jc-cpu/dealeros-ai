@@ -23,13 +23,15 @@ function validate(row: ImportRow, rowNumber: number) {
   const stockNumber = (row.stockNumber ?? "").trim();
   const year = numberValue(row.year);
   if (!stockNumber) throw new Error(`Row ${rowNumber}: Stock number is required.`);
-  if (vin.length !== 17 || /[IOQ]/.test(vin)) throw new Error(`Row ${rowNumber}: VIN must be 17 valid characters.`);
+  if (vin.length < 6 || vin.length > 17 || !/^[A-Z0-9]+$/.test(vin)) throw new Error(`Row ${rowNumber}: VIN or serial number must be 6–17 letters and numbers.`);
+  if (vin.length === 17 && /[IOQ]/.test(vin)) throw new Error(`Row ${rowNumber}: A 17-character automotive VIN cannot contain I, O, or Q.`);
   if (!year || year < 1900 || year > new Date().getFullYear() + 1) throw new Error(`Row ${rowNumber}: Vehicle year is invalid.`);
   if (!row.make?.trim() || !row.model?.trim()) throw new Error(`Row ${rowNumber}: Make and model are required.`);
   const status = row.status?.trim() || "Available";
   if (!VEHICLE_STATUSES.includes(status as (typeof VEHICLE_STATUSES)[number])) throw new Error(`Row ${rowNumber}: Status "${status}" is not supported.`);
-  const numericFields = ["mileage", "retailPrice", "vehicleCost", "reconCost", "otherCost"] as const;
-  for (const field of numericFields) if (numberValue(row[field]) < 0 || Number.isNaN(numberValue(row[field]))) throw new Error(`Row ${rowNumber}: ${field} is invalid.`);
+  const nonnegativeFields = ["mileage", "retailPrice", "vehicleCost"] as const;
+  for (const field of nonnegativeFields) if (numberValue(row[field]) < 0 || Number.isNaN(numberValue(row[field]))) throw new Error(`Row ${rowNumber}: ${field} is invalid.`);
+  for (const field of ["reconCost", "otherCost"] as const) if (Number.isNaN(numberValue(row[field]))) throw new Error(`Row ${rowNumber}: ${field} is invalid.`);
 
   const dateIn = row.dateIn?.trim() ? new Date(row.dateIn) : null;
   if (dateIn && Number.isNaN(dateIn.getTime())) throw new Error(`Row ${rowNumber}: Date acquired is invalid.`);
