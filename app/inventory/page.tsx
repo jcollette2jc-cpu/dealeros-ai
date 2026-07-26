@@ -74,9 +74,14 @@ export default async function InventoryPage({
               Live vehicle data from the DealerOS database.
             </p>
           </div>
-          <Link href="/inventory/new" className="rounded-lg bg-blue-600 px-5 py-3 text-center text-sm font-semibold hover:bg-blue-500">
-            Add Vehicle
-          </Link>
+          <div className="flex gap-3">
+            <Link href="/inventory/import" className="rounded-lg border border-slate-700 px-5 py-3 text-center text-sm font-semibold hover:bg-slate-800">
+              Import DealerClick CSV
+            </Link>
+            <Link href="/inventory/new" className="rounded-lg bg-blue-600 px-5 py-3 text-center text-sm font-semibold hover:bg-blue-500">
+              Add Vehicle
+            </Link>
+          </div>
         </header>
 
         {params.success && (

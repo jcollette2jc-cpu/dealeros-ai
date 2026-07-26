@@ -7,6 +7,7 @@ on:
     branches:
       - agent/inventory-crud
       - agent/inventory-smoke-tests
+      - agent/dealerclick-csv-import
 
 jobs:
   verify:
@@ -36,6 +37,9 @@ jobs:
       - name: Run inventory CRUD smoke test
         run: npx tsx scripts/inventory-smoke-test.ts
 
+      - name: Run DealerClick CSV parser smoke test
+        run: npx tsx scripts/csv-import-smoke-test.ts
+
       - name: Seed demonstration inventory
         run: npm run db:seed
 
@@ -59,10 +63,12 @@ jobs:
           done
           curl --fail --silent http://127.0.0.1:3000/inventory > /tmp/inventory.html
           curl --fail --silent http://127.0.0.1:3000/inventory/new > /tmp/new-vehicle.html
+          curl --fail --silent http://127.0.0.1:3000/inventory/import > /tmp/import.html
           vehicle_path=$(grep -oE '/inventory/[0-9]+' /tmp/inventory.html | head -n 1)
           test -n "$vehicle_path"
           curl --fail --silent "http://127.0.0.1:3000$vehicle_path" > /tmp/vehicle-detail.html
           grep -q "DealerOS AI Command Center" /tmp/dashboard.html
           grep -q "Inventory Intelligence" /tmp/inventory.html
           grep -q "Add Vehicle" /tmp/new-vehicle.html
+          grep -q "Import DealerClick Inventory" /tmp/import.html
           grep -q "Vehicle Details" /tmp/vehicle-detail.html
