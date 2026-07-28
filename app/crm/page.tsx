@@ -74,10 +74,11 @@ export default async function CrmPage() {
               <article key={lead.id} className={`rounded-2xl border bg-slate-900 p-5 ${isOverdue ? "border-yellow-500/50" : "border-slate-800"}`}>
                 <div className="grid gap-5 xl:grid-cols-[1.3fr_1fr_1.4fr] xl:items-start">
                   <div>
-                    <div className="flex flex-wrap items-center gap-2"><h3 className="text-lg font-semibold">{lead.firstName} {lead.lastName}</h3><Badge value={lead.priority} /><span className="rounded-full bg-slate-800 px-3 py-1 text-xs">{lead.status}</span></div>
+                    <div className="flex flex-wrap items-center gap-2"><Link href={`/crm/${lead.id}`} className="text-lg font-semibold text-blue-300 hover:text-blue-200">{lead.firstName} {lead.lastName}</Link><Badge value={lead.priority} /><span className="rounded-full bg-slate-800 px-3 py-1 text-xs">{lead.status}</span></div>
                     <p className="mt-2 text-sm text-slate-400">{lead.phone ?? "No phone"} · {lead.email ?? "No email"}</p>
                     <p className="mt-2 text-sm text-slate-300">{lead.vehicle ? `${lead.vehicle.year} ${lead.vehicle.make} ${lead.vehicle.model}` : "Open vehicle inquiry"} · {lead.source}</p>
                     {lead.notes && <p className="mt-3 text-sm text-slate-400">{lead.notes}</p>}
+                    <Link href={`/crm/${lead.id}`} className="mt-4 inline-block text-sm font-semibold text-blue-400 hover:text-blue-300">View contact history →</Link>
                   </div>
                   <div className="text-sm">
                     <p className={isOverdue ? "font-semibold text-yellow-300" : "text-slate-300"}>Follow-up: {lead.nextFollowUpAt?.toLocaleString() ?? "Not scheduled"}</p>
