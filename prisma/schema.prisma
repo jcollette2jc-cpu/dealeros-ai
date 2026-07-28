@@ -29,34 +29,61 @@ model Vehicle {
   updatedAt          DateTime            @updatedAt
   leads              Lead[]
   marketingApprovals MarketingApproval[]
+  photos             VehiclePhoto[]
 
   @@index([status, archivedAt])
   @@index([dateIn])
 }
 
+model VehiclePhoto {
+  id        Int      @id @default(autoincrement())
+  vehicleId Int
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  url       String
+  altText   String?
+  position  Int      @default(0)
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([vehicleId, position])
+}
+
 model Lead {
-  id             Int       @id @default(autoincrement())
+  id             Int           @id @default(autoincrement())
   firstName      String
   lastName       String?
   email          String?
   phone          String?
-  source         String    @default("Manual")
-  status         String    @default("New")
-  priority       String    @default("Warm")
+  source         String        @default("Manual")
+  status         String        @default("New")
+  priority       String        @default("Warm")
   vehicleId      Int?
-  vehicle        Vehicle?  @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  vehicle        Vehicle?      @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
   lastContactAt  DateTime?
   nextFollowUpAt DateTime?
   appointmentAt  DateTime?
   respondedAt    DateTime?
   notes          String?
   archivedAt     DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  activities     LeadActivity[]
 
   @@index([status, archivedAt])
   @@index([nextFollowUpAt])
   @@index([vehicleId])
+}
+
+model LeadActivity {
+  id        Int      @id @default(autoincrement())
+  leadId    Int
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  type      String
+  summary   String
+  createdAt DateTime @default(now())
+
+  @@index([leadId, createdAt])
 }
 
 model MarketingApproval {
@@ -71,4 +98,19 @@ model MarketingApproval {
 
   @@unique([vehicleId, channel])
   @@index([status])
+}
+
+model DealershipSettings {
+  id                  Int      @id @default(1)
+  name                String   @default("Reliable Auto Sales")
+  phone               String?
+  email               String?
+  website             String?
+  streetAddress       String   @default("9423 Lima Rd.")
+  city                String   @default("Fort Wayne")
+  state               String   @default("IN")
+  postalCode          String?
+  financingDisclosure String   @default("Financing options may be available for qualified buyers.")
+  updatedAt           DateTime @updatedAt
+  createdAt           DateTime @default(now())
 }
