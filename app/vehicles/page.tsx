@@ -28,11 +28,7 @@ export default async function PublicInventoryPage() {
         "@type": "Vehicle",
         name: [vehicle.year, vehicle.make, vehicle.model, vehicle.trim].filter(Boolean).join(" "),
         vehicleIdentificationNumber: vehicle.vin,
-        mileageFromOdometer: {
-          "@type": "QuantitativeValue",
-          value: vehicle.mileage,
-          unitCode: "SMI",
-        },
+        mileageFromOdometer: { "@type": "QuantitativeValue", value: vehicle.mileage, unitCode: "SMI" },
         color: vehicle.color || undefined,
         description: generateVehicleMarketing(vehicle).website,
         offers: {
@@ -69,10 +65,7 @@ export default async function PublicInventoryPage() {
       </header>
 
       <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-6 flex items-end justify-between gap-4">
-          <div><h2 className="text-2xl font-semibold">{vehicles.length} vehicle{vehicles.length === 1 ? "" : "s"} available</h2><p className="mt-1 text-sm text-slate-400">Contact the dealership to confirm availability and financing terms.</p></div>
-          <a href="tel:+1" className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold hover:bg-blue-500">Call Reliable Auto Sales</a>
-        </div>
+        <div className="mb-6"><h2 className="text-2xl font-semibold">{vehicles.length} vehicle{vehicles.length === 1 ? "" : "s"} available</h2><p className="mt-1 text-sm text-slate-400">Visit Reliable Auto Sales to confirm availability, financing terms, and test-drive times.</p></div>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {vehicles.map((vehicle) => {
@@ -85,14 +78,14 @@ export default async function PublicInventoryPage() {
                 <div className="p-6">
                   <div className="flex items-start justify-between gap-4"><div><p className="text-sm text-slate-400">{vehicle.mileage.toLocaleString("en-US")} miles</p><p className="mt-1 text-sm text-slate-500">{vehicle.color || "Color available on request"}</p></div><p className="text-2xl font-bold text-emerald-300">{money(Number(vehicle.retailPrice))}</p></div>
                   <p className="mt-5 line-clamp-4 text-sm leading-6 text-slate-300">{marketing.website}</p>
-                  <div className="mt-6 grid grid-cols-2 gap-3"><a href="tel:+1" className="rounded-lg bg-blue-600 px-4 py-3 text-center text-sm font-semibold hover:bg-blue-500">Call</a><a href={`mailto:?subject=${encodeURIComponent(`${vehicle.year} ${vehicle.make} ${vehicle.model}`)}&body=${encodeURIComponent(marketing.text)}`} className="rounded-lg border border-slate-700 px-4 py-3 text-center text-sm font-semibold hover:bg-slate-800">Ask About It</a></div>
+                  <div className="mt-6 rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-center text-sm font-semibold text-slate-200">Ask for Stock #{vehicle.stockNumber} at 9423 Lima Rd.</div>
                 </div>
               </article>
             );
           })}
         </div>
 
-        {vehicles.length === 0 && <div className="rounded-2xl border border-slate-800 bg-slate-900 p-12 text-center text-slate-400">Inventory is being updated. Contact Reliable Auto Sales for current availability.</div>}
+        {vehicles.length === 0 && <div className="rounded-2xl border border-slate-800 bg-slate-900 p-12 text-center text-slate-400">Inventory is being updated. Visit Reliable Auto Sales for current availability.</div>}
       </section>
     </main>
   );
