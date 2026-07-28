@@ -11,7 +11,10 @@ export default async function VehiclePage({ params, searchParams }: { params: Pr
   const query = await searchParams;
   const vehicle = await prisma.vehicle.findFirst({
     where: { id: Number(id), archivedAt: null },
-    include: { marketingApprovals: true },
+    include: {
+      marketingApprovals: true,
+      photos: { orderBy: [{ isPrimary: "desc" }, { position: "asc" }] },
+    },
   });
   if (!vehicle) notFound();
 
@@ -24,6 +27,9 @@ export default async function VehiclePage({ params, searchParams }: { params: Pr
     vehicle.marketingApprovals.map((approval) => [approval.channel, approval.status]),
   );
   const approvedCount = vehicle.marketingApprovals.filter((approval) => approval.status === "Approved").length;
+  const photoCount = vehicle.photos.length;
+  const photoReady = photoCount >= 12;
+  const primaryPhoto = vehicle.photos.find((photo) => photo.isPrimary) ?? vehicle.photos[0];
   const statusAction = changeVehicleStatus.bind(null, vehicle.id);
   const archiveAction = archiveVehicle.bind(null, vehicle.id);
 
@@ -34,14 +40,21 @@ export default async function VehiclePage({ params, searchParams }: { params: Pr
         {query.success && <div className="mt-6 rounded-lg border border-green-500/40 bg-green-500/10 p-4 text-green-200">Vehicle updated successfully.</div>}
         <header className="mt-6 flex flex-col gap-4 border-b border-slate-800 pb-6 md:flex-row md:items-end md:justify-between">
           <div><p className="text-sm text-blue-400">Stock #{vehicle.stockNumber}</p><h1 className="mt-2 text-3xl font-bold">{vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim}</h1><p className="mt-2 text-slate-400">{vehicle.vin}</p></div>
-          <Link href={`/inventory/${vehicle.id}/edit`} className="rounded-lg bg-blue-600 px-5 py-3 text-center text-sm font-semibold">Edit Vehicle</Link>
+          <div className="flex flex-wrap gap-3">
+            <Link href={`/inventory/${vehicle.id}/photos`} className="rounded-lg border border-slate-700 px-5 py-3 text-center text-sm font-semibold hover:bg-slate-800">Manage Photos</Link>
+            <Link href={`/inventory/${vehicle.id}/edit`} className="rounded-lg bg-blue-600 px-5 py-3 text-center text-sm font-semibold">Edit Vehicle</Link>
+          </div>
         </header>
-        <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+
+        {primaryPhoto && <img src={primaryPhoto.url} alt={primaryPhoto.altText ?? `${vehicle.year} ${vehicle.make} ${vehicle.model}`} className="mt-8 aspect-[16/7] w-full rounded-2xl border border-slate-800 object-cover" />}
+
+        <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-7">
           <Card label="Days in Stock" value={String(age)} />
           <Card label="Total Cost" value={money(cost)} />
           <Card label="Retail Price" value={money(Number(vehicle.retailPrice))} />
           <Card label="Estimated Gross" value={money(gross)} />
           <Card label="Marketing Ready" value={`${readiness.score}%`} />
+          <Card label="Photo Ready" value={photoReady ? "Ready" : `${photoCount}/12`} />
           <Card label="Assets Approved" value={`${approvedCount}/4`} />
         </section>
         <section className="mt-8 grid gap-6 lg:grid-cols-2">
@@ -66,8 +79,10 @@ export default async function VehiclePage({ params, searchParams }: { params: Pr
               <button className="rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold">Update Status</button>
             </form>
             <div className="mt-8 rounded-xl border border-slate-800 bg-slate-950 p-4">
-              <p className="text-sm font-semibold">Marketing readiness: {readiness.score}%</p>
-              {readiness.ready ? <p className="mt-2 text-sm text-green-300">Ready for automated marketing.</p> : <p className="mt-2 text-sm text-yellow-300">Add {readiness.missing.join(", ")} to improve the generated ads.</p>}
+              <p className="text-sm font-semibold">Listing readiness</p>
+              <p className={`mt-2 text-sm ${readiness.ready && photoReady ? "text-green-300" : "text-yellow-300"}`}>
+                {readiness.ready && photoReady ? "Ready for automated marketing and public listings." : `Complete ${[...readiness.missing, ...(!photoReady ? [`${12 - photoCount} more photos`] : [])].join(", ")}.`}
+              </p>
             </div>
             <div className="mt-8 border-t border-slate-800 pt-6">
               <h3 className="font-semibold text-red-300">Archive vehicle</h3>
