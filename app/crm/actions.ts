@@ -15,10 +15,14 @@ function optionalDate(value: FormDataEntryValue | null) {
   return date;
 }
 
+function refreshCrm() {
+  revalidatePath("/");
+  revalidatePath("/crm");
+}
+
 export async function createLead(formData: FormData) {
   const firstName = text(formData, "firstName");
   if (!firstName) throw new Error("First name is required.");
-
   const phone = text(formData, "phone") || null;
   const email = text(formData, "email") || null;
   if (!phone && !email) throw new Error("Enter a phone number or email address.");
@@ -39,8 +43,7 @@ export async function createLead(formData: FormData) {
       notes: text(formData, "notes") || null,
     },
   });
-  revalidatePath("/");
-  revalidatePath("/crm");
+  refreshCrm();
 }
 
 export async function updateLeadStatus(leadId: number, formData: FormData) {
@@ -48,42 +51,40 @@ export async function updateLeadStatus(leadId: number, formData: FormData) {
   const valid = ["New", "Contacted", "Appointment", "Working", "Sold", "Lost"];
   if (!valid.includes(status)) throw new Error("Choose a valid lead status.");
 
+  const lead = await prisma.lead.findUnique({ where: { id: leadId }, select: { respondedAt: true } });
   await prisma.lead.update({
     where: { id: leadId },
     data: {
       status,
-      respondedAt: status === "New" ? null : undefined,
+      respondedAt: status === "New" ? null : lead?.respondedAt ?? new Date(),
       lastContactAt: status === "New" ? undefined : new Date(),
     },
   });
-  revalidatePath("/");
-  revalidatePath("/crm");
+  refreshCrm();
 }
 
 export async function completeFollowUp(leadId: number) {
+  const lead = await prisma.lead.findUnique({ where: { id: leadId }, select: { respondedAt: true } });
   await prisma.lead.update({
     where: { id: leadId },
     data: {
       lastContactAt: new Date(),
-      respondedAt: new Date(),
+      respondedAt: lead?.respondedAt ?? new Date(),
       nextFollowUpAt: null,
       status: "Contacted",
     },
   });
-  revalidatePath("/");
-  revalidatePath("/crm");
+  refreshCrm();
 }
 
 export async function scheduleFollowUp(leadId: number, formData: FormData) {
   const nextFollowUpAt = optionalDate(formData.get("nextFollowUpAt"));
   if (!nextFollowUpAt) throw new Error("Choose a follow-up date and time.");
   await prisma.lead.update({ where: { id: leadId }, data: { nextFollowUpAt } });
-  revalidatePath("/");
-  revalidatePath("/crm");
+  refreshCrm();
 }
 
 export async function archiveLead(leadId: number) {
   await prisma.lead.update({ where: { id: leadId }, data: { archivedAt: new Date() } });
-  revalidatePath("/");
-  revalidatePath("/crm");
+  refreshCrm();
 }
