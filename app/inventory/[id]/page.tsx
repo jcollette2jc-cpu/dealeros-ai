@@ -4,17 +4,26 @@ import { daysInStock, estimatedGross, money, totalCost, VEHICLE_STATUSES } from 
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { archiveVehicle, changeVehicleStatus } from "../actions";
+import { MarketingCopyCard } from "./marketing-copy-card";
 
 export default async function VehiclePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ success?: string }> }) {
   const { id } = await params;
   const query = await searchParams;
-  const vehicle = await prisma.vehicle.findFirst({ where: { id: Number(id), archivedAt: null } });
+  const vehicle = await prisma.vehicle.findFirst({
+    where: { id: Number(id), archivedAt: null },
+    include: { marketingApprovals: true },
+  });
   if (!vehicle) notFound();
+
   const age = daysInStock(vehicle.dateIn);
   const cost = totalCost(vehicle);
   const gross = estimatedGross(vehicle);
   const marketing = generateVehicleMarketing(vehicle);
   const readiness = marketingReadiness(vehicle);
+  const approvalByChannel = Object.fromEntries(
+    vehicle.marketingApprovals.map((approval) => [approval.channel, approval.status]),
+  );
+  const approvedCount = vehicle.marketingApprovals.filter((approval) => approval.status === "Approved").length;
   const statusAction = changeVehicleStatus.bind(null, vehicle.id);
   const archiveAction = archiveVehicle.bind(null, vehicle.id);
 
@@ -27,12 +36,13 @@ export default async function VehiclePage({ params, searchParams }: { params: Pr
           <div><p className="text-sm text-blue-400">Stock #{vehicle.stockNumber}</p><h1 className="mt-2 text-3xl font-bold">{vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim}</h1><p className="mt-2 text-slate-400">{vehicle.vin}</p></div>
           <Link href={`/inventory/${vehicle.id}/edit`} className="rounded-lg bg-blue-600 px-5 py-3 text-center text-sm font-semibold">Edit Vehicle</Link>
         </header>
-        <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
           <Card label="Days in Stock" value={String(age)} />
           <Card label="Total Cost" value={money(cost)} />
           <Card label="Retail Price" value={money(Number(vehicle.retailPrice))} />
           <Card label="Estimated Gross" value={money(gross)} />
           <Card label="Marketing Ready" value={`${readiness.score}%`} />
+          <Card label="Assets Approved" value={`${approvedCount}/4`} />
         </section>
         <section className="mt-8 grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
@@ -72,12 +82,12 @@ export default async function VehiclePage({ params, searchParams }: { params: Pr
         <section className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
           <p className="text-sm font-medium text-blue-400">Inventory Intelligence</p>
           <h2 className="mt-2 text-2xl font-semibold">Generated marketing content</h2>
-          <p className="mt-2 text-sm text-slate-400">Copy and review before publishing. Content updates automatically when the vehicle record changes.</p>
+          <p className="mt-2 text-sm text-slate-400">Copy, review, and approve each asset before publishing. Approvals are saved to the dealership database.</p>
           <div className="mt-6 grid gap-5 lg:grid-cols-2">
-            <MarketingCopy title="Facebook Marketplace" content={marketing.marketplace} />
-            <MarketingCopy title="Facebook / Instagram" content={marketing.social} />
-            <MarketingCopy title="Website Description" content={marketing.website} />
-            <MarketingCopy title="Customer Text Message" content={marketing.text} />
+            <MarketingCopyCard vehicleId={vehicle.id} channel="marketplace" title="Facebook Marketplace" content={marketing.marketplace} initialStatus={approvalByChannel.marketplace ?? "Draft"} />
+            <MarketingCopyCard vehicleId={vehicle.id} channel="social" title="Facebook / Instagram" content={marketing.social} initialStatus={approvalByChannel.social ?? "Draft"} />
+            <MarketingCopyCard vehicleId={vehicle.id} channel="website" title="Website Description" content={marketing.website} initialStatus={approvalByChannel.website ?? "Draft"} />
+            <MarketingCopyCard vehicleId={vehicle.id} channel="text" title="Customer Text Message" content={marketing.text} initialStatus={approvalByChannel.text ?? "Draft"} />
           </div>
         </section>
       </div>
@@ -87,4 +97,3 @@ export default async function VehiclePage({ params, searchParams }: { params: Pr
 
 function Card({ label, value }: { label: string; value: string }) { return <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5"><p className="text-sm text-slate-400">{label}</p><p className="mt-2 text-2xl font-bold">{value}</p></div>; }
 function Detail({ label, value }: { label: string; value: string }) { return <div><dt className="text-slate-500">{label}</dt><dd className="mt-1 font-medium">{value}</dd></div>; }
-function MarketingCopy({ title, content }: { title: string; content: string }) { return <article className="rounded-xl border border-slate-800 bg-slate-950 p-5"><h3 className="font-semibold text-blue-300">{title}</h3><pre className="mt-4 whitespace-pre-wrap font-sans text-sm leading-6 text-slate-300">{content}</pre></article>; }
