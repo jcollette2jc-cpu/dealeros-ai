@@ -1,7 +1,8 @@
 export const VEHICLE_FIELDS = [
   "stockNumber", "vin", "year", "make", "model", "trim", "mileage",
   "dateIn", "retailPrice", "vehicleCost", "reconCost", "otherCost",
-  "color", "status", "notes",
+  "color", "status", "notes", "photoUrl", "customerFirstName", "customerLastName",
+  "customerPhone", "customerEmail", "leadSource", "leadStatus", "leadPriority",
 ] as const;
 
 export type VehicleField = (typeof VEHICLE_FIELDS)[number];
@@ -10,7 +11,7 @@ export type CsvRow = Record<string, string>;
 
 const aliases: Record<VehicleField, string[]> = {
   stockNumber: ["stock", "stocknumber", "stockno", "stock#"],
-  vin: ["vin", "vehicleidentificationnumber"],
+  vin: ["vin", "vehicleidentificationnumber", "serialnumber"],
   year: ["year", "yr"],
   make: ["make", "manufacturer"],
   model: ["model"],
@@ -24,6 +25,14 @@ const aliases: Record<VehicleField, string[]> = {
   color: ["color", "exteriorcolor", "extcolor"],
   status: ["status", "inventorystatus"],
   notes: ["notes", "comments", "description"],
+  photoUrl: ["photourl", "imageurl", "primaryphoto", "primaryimage", "pictureurl", "photo1"],
+  customerFirstName: ["customerfirstname", "firstname", "leadfirstname", "buyerfirstname"],
+  customerLastName: ["customerlastname", "lastname", "leadlastname", "buyerlastname"],
+  customerPhone: ["customerphone", "phone", "phonenumber", "leadphone", "buyerphone"],
+  customerEmail: ["customeremail", "email", "emailaddress", "leademail", "buyeremail"],
+  leadSource: ["leadsource", "customersource", "inquirysource"],
+  leadStatus: ["leadstatus", "customerstatus"],
+  leadPriority: ["leadpriority", "priority", "leadtemperature"],
 };
 
 function normalized(value: string) {
@@ -62,9 +71,7 @@ export function parseCsv(input: string): { headers: string[]; rows: CsvRow[] } {
   if (!matrix.length) return { headers: [], rows: [] };
 
   const headers = matrix[0].map((header, index) => header || `Column ${index + 1}`);
-  const rows = matrix.slice(1).map((cells) =>
-    Object.fromEntries(headers.map((header, index) => [header, cells[index] ?? ""])),
-  );
+  const rows = matrix.slice(1).map((cells) => Object.fromEntries(headers.map((header, index) => [header, cells[index] ?? ""])));
   return { headers, rows };
 }
 
